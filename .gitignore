@@ -1,0 +1,37 @@
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Streamlit
+.streamlit/
+
+# Model files – exclude all large binaries
+models/**/*.bin
+models/**/*.pt
+models/**/*.pkl
+models/**/*.safetensors
+models/**/*.onnx
+models/**/*.h5
+models/**/*.keras
+models/**/*.joblib
+
+# Data files – exclude large raw data
+data/raw/*.csv
+data/raw/*.tsv
+data/raw/*.zip
+data/raw/*.tar
+data/raw/*.pkl
+data/raw/*.pt
+data/raw/liar/
+data/raw/pheme.zip
+
+# But keep the compressed dataset and small CSVs
+!data/raw/unified_dataset.csv.gz
+!data/raw/balanced_dataset.csv
+!data/raw/augmented_fake.csv
