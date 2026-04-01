@@ -1,4 +1,3 @@
-# preprocessing.py - ENHANCED VERSION
 import re
 import nltk
 from nltk.corpus import stopwords
@@ -33,13 +32,10 @@ class TextPreprocessor:
         if not isinstance(text, str):
             return ""
         
-        # Step 1: Expand contractions with error handling
         try:
             text = contractions.fix(text)
         except (IndexError, ValueError) as e:
-            # If contractions.fix fails, use a simple contraction replacement
-            # You can add logging here if needed: print(f"Contraction fix failed: {e}")
-            # Fallback: manually fix common contractions
+
             contractions_dict = {
                 "won't": "will not",
                 "can't": "cannot",
@@ -55,7 +51,6 @@ class TextPreprocessor:
             for contraction, expansion in contractions_dict.items():
                 text = text.replace(contraction, expansion)
         except Exception:
-            # For any other exception, just continue without contraction expansion
             pass
         
         # Step 2: Lowercase

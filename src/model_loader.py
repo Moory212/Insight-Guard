@@ -1,4 +1,3 @@
-# src/model_loader.py
 import torch
 import joblib
 import pandas as pd

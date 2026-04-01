@@ -1,4 +1,3 @@
-# app.py - INSIGHT GUARD: Modern, Minimalist, Premium UI
 import streamlit as st
 import joblib
 import re
@@ -35,7 +34,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS (same as before – keep your existing CSS)
 st.markdown("""
 <style>
     /* Global styles - Dark theme */

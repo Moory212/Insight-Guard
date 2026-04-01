@@ -1,0 +1,33 @@
+{
+  "logistic_regression_fast": {
+    "type": "traditional",
+    "metrics": {
+      "accuracy": 0.8916808631459399,
+      "f1_score": 0.8920835811278581,
+      "precision": 0.8933844329014552,
+      "recall": 0.8916808631459399,
+      "roc_auc": 0.9664552475220048,
+      "confusion_matrix": "[[7425  920]\n [ 606 5137]]"
+    },
+    "params": {},
+    "created_at": "2026-03-31T00:04:49.935478",
+    "updated_at": "2026-03-31T00:05:00.116164"
+  },
+  "logistic_regression": {
+    "type": "traditional",
+    "metrics": {
+      "accuracy": 0.9454774300589278,
+      "f1_score": 0.9454658495904799,
+      "precision": 0.9455126063216669,
+      "recall": 0.9454774300589278,
+      "roc_auc": 0.9876341838871205,
+      "confusion_matrix": "[[7929  525]\n [ 428 8597]]"
+    },
+    "params": {
+      "C": 10,
+      "penalty": "l1"
+    },
+    "created_at": "2026-01-26T18:13:40.754420",
+    "updated_at": "2026-01-26T18:13:48.089617"
+  }
+}

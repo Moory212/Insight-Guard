@@ -1,4 +1,3 @@
-# src/bert_model.py - OPTIMIZED VERSION
 import os
 import torch
 import torch.nn as nn
