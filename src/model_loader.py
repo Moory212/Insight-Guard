@@ -15,79 +15,70 @@ class ModelLoader:
     def discover_models(self):
         """Discover all available models in the models directory"""
         models = []
-        
+
         if not self.model_dir.exists():
             return models
-        
-        # Discover BERT models (.pt files and HuggingFace format)
-        bert_models = []
-        
-        # Check for HuggingFace format
+
+        # Discover BERT models (HuggingFace format)
+        # Look for subfolders containing config.json (weights may be missing)
         for model_folder in self.model_dir.glob("*/"):
-            if (model_folder / "pytorch_model.bin").exists() or (model_folder / "model.safetensors").exists():
-                config_path = model_folder / "config.json"
-                if config_path.exists():
-                    bert_models.append({
-                        'name': model_folder.name,
-                        'path': model_folder,
-                        'type': 'BERT',
-                        'format': 'huggingface'
-                    })
-        
-        # Check for .pt files
+            config_path = model_folder / "config.json"
+            if config_path.exists():
+                # This is a valid BERT model folder (weights may be downloaded from Hub)
+                models.append({
+                    'name': model_folder.name,
+                    'path': str(model_folder),
+                    'type': 'BERT',
+                    'size_mb': 0,  # size unknown, but we can compute if needed
+                    'format': 'huggingface'
+                })
+                continue  # avoid double counting if also .pt file
+
+        # Also check for .pt files (single-file BERT models)
         pt_files = list(self.model_dir.glob("*.pt"))
         for pt_file in pt_files:
             if 'bert' in pt_file.stem.lower():
-                bert_models.append({
+                size_mb = pt_file.stat().st_size / (1024 * 1024)
+                models.append({
                     'name': pt_file.stem,
-                    'path': pt_file,
+                    'path': str(pt_file),
                     'type': 'BERT',
+                    'size_mb': round(size_mb, 1),
                     'format': 'pytorch'
                 })
-        
-        # Add BERT models
-        for bert_model in bert_models:
-            size_mb = bert_model['path'].stat().st_size / (1024 * 1024)
-            models.append({
-                'name': bert_model['name'],
-                'path': str(bert_model['path']),
-                'type': 'BERT',
-                'size_mb': round(size_mb, 1),
-                'format': bert_model['format']
-            })
-        
-        # Discover traditional models (.pkl files)
-        pkl_files = list(self.model_dir.glob("*.pkl"))
-        model_files = []
-        
-        for pkl_file in pkl_files:
-            filename = pkl_file.stem
-            
-            # Skip vectorizers and metadata
-            if any(x in filename for x in ['vectorizer', 'metadata', 'pipeline']):
-                continue
-            
-            # Check if it's a model file
-            if any(x in filename for x in ['model', 'classifier', 'regression', 'svm', 'forest', 'bayes']):
-                model_files.append(pkl_file)
-        
-        for model_file in model_files:
-            model_name = model_file.stem
-            size_mb = model_file.stat().st_size / (1024 * 1024)
-            
-            # Check for corresponding files
-            vectorizer_exists = (self.model_dir / f"{model_name}_vectorizer.pkl").exists()
-            pipeline_exists = (self.model_dir / f"{model_name}_pipeline.pkl").exists()
-            
+
+        # Discover traditional models (pipelines, model+vectorizer)
+        # Look for pipeline files and model files
+        pipeline_files = list(self.model_dir.glob("*_pipeline.pkl"))
+        model_files = list(self.model_dir.glob("*_model.pkl"))
+
+        # Process pipeline files
+        for pipeline_file in pipeline_files:
+            # Remove '_pipeline' suffix for display name
+            model_name = pipeline_file.stem.replace('_pipeline', '')
+            size_mb = pipeline_file.stat().st_size / (1024 * 1024)
             models.append({
                 'name': model_name,
-                'path': str(model_file),
+                'path': str(pipeline_file),
                 'type': 'Traditional ML',
                 'size_mb': round(size_mb, 1),
-                'has_vectorizer': vectorizer_exists,
-                'has_pipeline': pipeline_exists
+                'format': 'pipeline'
             })
-        
+
+        # Process model files (only if no pipeline exists with same base name)
+        for model_file in model_files:
+            base_name = model_file.stem.replace('_model', '')
+            # Check if a pipeline with same base already exists (avoid duplicates)
+            if not any(m['name'] == base_name and m.get('format') == 'pipeline' for m in models):
+                size_mb = model_file.stat().st_size / (1024 * 1024)
+                models.append({
+                    'name': base_name,
+                    'path': str(model_file),
+                    'type': 'Traditional ML',
+                    'size_mb': round(size_mb, 1),
+                    'format': 'model_only'
+                })
+
         return models
     
     def load_bert_model(self, model_name):
