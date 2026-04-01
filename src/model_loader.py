@@ -95,7 +95,7 @@ class ModelLoader:
         # If the model name matches our uploaded model, use the Hub ID
         if model_name == "bert_best_model":
             # Use the Hugging Face repository ID
-            model_id = "SOKEH/insightguardbert/tree/main/bert_best_model"   # replace with your actual ID
+            model_id = "SOKEH/insightguardbert"   # replace with your actual ID
             try:
                 from transformers import BertTokenizer, BertForSequenceClassification
                 tokenizer = BertTokenizer.from_pretrained(model_id)
