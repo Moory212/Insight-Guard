@@ -417,8 +417,7 @@ with col1:
         "Paste or type your news article",
         height=300,
         placeholder="Enter news text here...",
-        value=example_texts.get(example_option, ""),
-        key="news_input"
+        value=example_texts.get(example_option, "")
     )
     
     col_options1, col_options2 = st.columns(2)
