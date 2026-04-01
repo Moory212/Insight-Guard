@@ -1,9 +1,9 @@
-
 import torch
 import joblib
 import pandas as pd
 from pathlib import Path
 from transformers import BertForSequenceClassification, BertTokenizer
+import traceback
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -85,16 +85,21 @@ class ModelLoader:
         """Load a BERT model from Hugging Face Hub or local path."""
         # If the model name matches our uploaded model, use the Hub ID
         if model_name == "bert_best_model":
-            # Use the Hugging Face repository ID
-            model_id = "SOKEH/insightguardbert"
+            # Use the Hugging Face repository ID (ensure it's public!)
+            model_id = "SOKEH/insightguardbert"   # <-- UPDATE THIS TO YOUR ACTUAL USERNAME/REPO IF DIFFERENT
             try:
                 from transformers import BertTokenizer, BertForSequenceClassification
+                print(f"Attempting to load model from Hugging Face Hub: {model_id}")
                 tokenizer = BertTokenizer.from_pretrained(model_id)
                 model = BertForSequenceClassification.from_pretrained(model_id, num_labels=2)
+                print(f"✅ Successfully loaded model from Hub")
                 return model, tokenizer
             except Exception as e:
-                # Fallback to local files (if present)
-                print(f"Failed to load from Hub, trying local: {e}")
+                # Print full traceback for debugging
+                print(f"❌ Failed to load from Hub: {e}")
+                traceback.print_exc()
+                # Fallback to local files (if they exist)
+                print(f"Falling back to local model: {model_name}")
                 return self._load_local_bert(model_name)
         else:
             # For other models (if any), try local first
@@ -104,14 +109,17 @@ class ModelLoader:
         """Helper to load BERT from local models folder."""
         model_path = self.model_dir / model_name
         if not model_path.exists():
+            print(f"❌ Local model path does not exist: {model_path}")
             return None, None
         try:
             from transformers import BertTokenizer, BertForSequenceClassification
             tokenizer = BertTokenizer.from_pretrained(str(model_path))
             model = BertForSequenceClassification.from_pretrained(str(model_path), num_labels=2)
+            print(f"✅ Successfully loaded local model from {model_path}")
             return model, tokenizer
         except Exception as e:
-            print(f"Error loading local BERT: {e}")
+            print(f"❌ Error loading local BERT: {e}")
+            traceback.print_exc()
             return None, None
     
     def load_traditional_model(self, model_name):
@@ -151,6 +159,7 @@ class ModelLoader:
             
         except Exception as e:
             print(f"❌ Error loading traditional model {model_name}: {e}")
+            traceback.print_exc()
             return None, None
     
     def get_model_info(self, model_name):
