@@ -12,6 +12,7 @@ nlpaug
 
 # Deep Learning
 torch
+torchvision
 transformers
 accelerate
 datasets
