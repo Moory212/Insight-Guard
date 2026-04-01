@@ -280,13 +280,18 @@ def predict_with_model(model_data, text):
             inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=128)
             with torch.no_grad():
                 outputs = model(**inputs)
-                probs = torch.softmax(outputs.logits, dim=1)
+                logits = outputs.logits
+                # Get temperature from session state (default 1.0)
+                temperature = st.session_state.get('temperature', 1.0)
+                # Apply temperature scaling
+                scaled_logits = logits / temperature
+                probs = torch.softmax(scaled_logits, dim=1)
                 probs = probs.numpy()[0]
             
             real_prob = float(probs[0])
             fake_prob = float(probs[1])
             
-            # Get threshold from session state (set in sidebar)
+            # Get threshold from session state (default 0.5)
             threshold = st.session_state.get('threshold', 0.5)
             # Determine prediction based on threshold
             if real_prob > threshold:
@@ -391,6 +396,12 @@ with st.sidebar:
             0.0, 1.0, 0.5, 0.01,
             key="threshold",
             help="Lower values make the model more likely to classify as 'Real'."
+        )
+        temperature = st.slider(
+            "Temperature (higher = less confident)",
+            0.1, 5.0, 1.0, 0.1,
+            key="temperature",
+            help="Higher values make probabilities more uniform. Try 2.0 if the model is overconfident."
         )
         
         st.markdown("---")
