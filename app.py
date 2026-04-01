@@ -223,7 +223,9 @@ def load_model(model_info):
                 'tokenizer': tokenizer,
                 'model_name': model_name
             }
+            st.write(f"✅ BERT model loaded: {model_name}")
         else:
+            st.write(f"❌ Failed to load BERT model: {model_name}")
             return None
     else:
         # First check if pipeline file exists (preferred)
@@ -236,6 +238,7 @@ def load_model(model_info):
                 'format': 'pipeline',
                 'model_name': model_name
             }
+            st.write(f"✅ Pipeline loaded: {model_name}")
         else:
             # Fallback to loader
             result = model_loader.load_traditional_model(model_name)
@@ -246,7 +249,9 @@ def load_model(model_info):
                     'format': result[1],
                     'model_name': model_name
                 }
+                st.write(f"✅ Traditional model loaded: {model_name}")
             else:
+                st.write(f"❌ Failed to load traditional model: {model_name}")
                 return None
     
     st.session_state.model_cache[cache_key] = model_data
@@ -270,6 +275,7 @@ def predict_with_model(model_data, text):
     
     try:
         if model_data['type'] == 'bert':
+            st.write("🔮 Predicting with BERT model...")
             model = model_data['model']
             tokenizer = model_data['tokenizer']
             inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=128)
@@ -282,9 +288,11 @@ def predict_with_model(model_data, text):
             confidence = float(max(probs))
             real_prob = float(probs[0])
             fake_prob = float(probs[1])
+            st.write(f"Prediction result: {prediction} ({confidence:.2%})")
             return prediction, confidence, real_prob, fake_prob
         
         else:  # traditional model
+            st.write("🔮 Predicting with traditional model...")
             model_obj = model_data['data']
             model_format = model_data.get('format', 'unknown')
             
@@ -322,6 +330,7 @@ def predict_with_model(model_data, text):
             confidence = max(probability)
             real_prob = probability[0]
             fake_prob = probability[1] if len(probability) > 1 else 0.5
+            st.write(f"Prediction result: {prediction_label} ({confidence:.2%})")
             return prediction_label, confidence, real_prob, fake_prob
 
     except Exception as e:
@@ -433,6 +442,10 @@ with col2:
     
     if analyze_btn:
         st.write("Button clicked")  # for debugging
+        st.write(f"Available models: {[m['name'] for m in available_models]}")
+        st.write(f"Selected model: {st.session_state.selected_model}")
+        st.write(f"Text length: {len(news_text.strip())}")
+        
         if not news_text.strip():
             st.warning("Please enter some text to analyze.")
         elif not available_models:
@@ -462,6 +475,8 @@ with col2:
                             'real_prob': real_prob,
                             'fake_prob': fake_prob
                         })
+            
+            st.write(f"Number of results: {len(results)}")
             
             if results:
                 if len(results) == 1:
