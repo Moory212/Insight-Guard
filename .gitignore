@@ -11,17 +11,24 @@ __pycache__/
 # Streamlit
 .streamlit/
 
-# Model files – exclude all large binaries
+# Exclude large model binaries (BERT weights, etc.)
 models/**/*.bin
 models/**/*.pt
-models/**/*.pkl
 models/**/*.safetensors
 models/**/*.onnx
 models/**/*.h5
 models/**/*.keras
 models/**/*.joblib
 
-# Data files – exclude large raw data
+# But include small pipeline, vectorizer, and metadata files
+!models/*_pipeline.pkl
+!models/*_model.pkl
+!models/*_vectorizer.pkl
+!models/*_metadata.pkl
+!models/*.json
+!models/*.txt
+
+# Data files – exclude most raw files, keep compressed dataset
 data/raw/*.csv
 data/raw/*.tsv
 data/raw/*.zip
@@ -31,7 +38,7 @@ data/raw/*.pt
 data/raw/liar/
 data/raw/pheme.zip
 
-# But keep the compressed dataset and small CSVs
+# But keep the compressed unified dataset and the two small CSVs
 !data/raw/unified_dataset.csv.gz
 !data/raw/balanced_dataset.csv
 !data/raw/augmented_fake.csv
