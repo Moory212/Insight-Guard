@@ -395,13 +395,13 @@ with st.sidebar:
             "Real news confidence threshold",
             0.0, 1.0, 0.5, 0.01,
             key="threshold",
-            help="Lower values make the model more likely to classify as 'Real'."
+            help="Lower values for better recent news prediction."
         )
         temperature = st.slider(
             "Temperature (higher = less confident)",
             0.1, 5.0, 1.0, 0.1,
             key="temperature",
-            help="Higher values make probabilities more uniform. Try 2.0 if the model is overconfident."
+            help="Higher values make the model more confident with recent news. Try 2.0 if the model is overconfident."
         )
         
         st.markdown("---")
