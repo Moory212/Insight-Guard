@@ -9,8 +9,8 @@ import sys
 import os
 import torch
 
-# Only show these models in the UI
-ALLOWED_MODELS = {"bert_best_model", ""}
+# Only show the BERT model in the UI
+ALLOWED_MODELS = {"bert_best_model"}
 
 # Add src to path
 current_dir = Path(__file__).parent
@@ -228,7 +228,7 @@ def load_model(model_info):
             st.write(f"❌ Failed to load BERT model: {model_name}")
             return None
     else:
-        # First check if pipeline file exists (preferred)
+        # Traditional models (not used now)
         pipeline_path = Path(model_loader.model_dir) / f"{model_name}_pipeline.pkl"
         if pipeline_path.exists():
             pipeline = joblib.load(pipeline_path)
@@ -240,7 +240,6 @@ def load_model(model_info):
             }
             st.write(f"✅ Pipeline loaded: {model_name}")
         else:
-            # Fallback to loader
             result = model_loader.load_traditional_model(model_name)
             if result:
                 model_data = {
@@ -282,21 +281,28 @@ def predict_with_model(model_data, text):
             with torch.no_grad():
                 outputs = model(**inputs)
                 probs = torch.softmax(outputs.logits, dim=1)
-                pred = torch.argmax(probs, dim=1).item()
                 probs = probs.numpy()[0]
-            prediction = "Fake" if pred == 1 else "Real"
-            confidence = float(max(probs))
+            
             real_prob = float(probs[0])
             fake_prob = float(probs[1])
-            st.write(f"Prediction result: {prediction} ({confidence:.2%})")
+            
+            # Get threshold from session state (set in sidebar)
+            threshold = st.session_state.get('threshold', 0.5)
+            # Determine prediction based on threshold
+            if real_prob > threshold:
+                prediction = "Real"
+            else:
+                prediction = "Fake"
+            confidence = real_prob if prediction == "Real" else fake_prob
+            
+            st.write(f"Prediction result: {prediction} (Real: {real_prob:.3f}, Fake: {fake_prob:.3f})")
             return prediction, confidence, real_prob, fake_prob
         
-        else:  # traditional model
+        else:  # traditional model (unused, kept for completeness)
             st.write("🔮 Predicting with traditional model...")
             model_obj = model_data['data']
             model_format = model_data.get('format', 'unknown')
             
-            # If it's a pipeline (has predict and transform), use it directly
             if hasattr(model_obj, 'predict') and hasattr(model_obj, 'transform'):
                 prediction = model_obj.predict([cleaned_text])[0]
                 if hasattr(model_obj, 'predict_proba'):
@@ -312,7 +318,6 @@ def predict_with_model(model_data, text):
                 else:
                     probability = [0.5, 0.5]
             else:
-                # Try to load vectorizer separately
                 vectorizer_path = Path(model_loader.model_dir) / f"{model_data['model_name']}_vectorizer.pkl"
                 if vectorizer_path.exists():
                     vectorizer = joblib.load(vectorizer_path)
@@ -378,6 +383,15 @@ with st.sidebar:
                 st.write(f"**Type:** {selected_info['type']}")
                 if st.session_state.current_model:
                     st.success("✅ Model loaded")
+        
+        st.markdown("---")
+        st.markdown("### ⚙️ Settings")
+        threshold = st.slider(
+            "Real news confidence threshold",
+            0.0, 1.0, 0.5, 0.01,
+            key="threshold",
+            help="Lower values make the model more likely to classify as 'Real'."
+        )
         
         st.markdown("---")
         st.markdown("### ℹ️ About")
