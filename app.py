@@ -432,6 +432,7 @@ with col2:
     st.markdown("### 📊 Prediction Results")
     
     if analyze_btn:
+        st.write("Button clicked")  # for debugging
         if not news_text.strip():
             st.warning("Please enter some text to analyze.")
         elif not available_models:
